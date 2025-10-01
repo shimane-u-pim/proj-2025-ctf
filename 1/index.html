@@ -22,10 +22,10 @@
 					正解の文字列を入力してください。
 				</h2>
 				<input type="text" id="user_answer">
+				<input type="button" value="Submit" id="checkButton">
 			</article>
 			<article>
-				<h2 id="msg">
-				</h2>
+				<p id="msg"></p>
 				<a href="/2" id="nextLink">次の問題へのリンク</a>
 			</article>
 		</main>
@@ -39,7 +39,7 @@
 			function submit(){
 				const base64edUserAns = btoa(user_answer.value);
 				if(base64edUserAns == base64edKey){
-					msg.value = "正解です。次にお進みください。";
+					msg.innerText = "正解です。次にお進みください。";
 					nextLink.style.display = "block";
 				}else{
 					msg.value = "不正解です。また挑戦してください。";
@@ -48,8 +48,9 @@
 			let user_answer = document.getElementById('user_answer');
 			let msg = document.getElementById('msg');
 			let nextLink = document.getElementById('nextLink');
+			let checkButton = document.getElementById('checkButton');
 			nextLink.style.display = "none";
-			msg.value = "";
+			msg.innerText = "";
 			checkButton.addEventListener('click',submit);
 		</script>
 	</body>
