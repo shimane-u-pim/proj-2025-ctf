@@ -1,0 +1,15 @@
+<input type="text" id="pwd" />
+<button onclick="genkey();">Gen</button>
+<div>
+    <code id="key"></code>
+</div>
+<script src="validate.js"></script>
+<script>
+    const genkey = async () => {
+        const pwd = document.getElementById('pwd').value;
+        console.debug('pwd', pwd);
+        const key = await encryptText('ok', pwd);
+        console.debug('key', key);
+        document.getElementById('key').innerText = key;
+    }
+</script>
