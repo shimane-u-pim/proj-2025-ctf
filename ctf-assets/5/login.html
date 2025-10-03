@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Login</title>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+		<style>
+			html,body,main{min-height: 100vh;}
+			.hide{display: none;}
+		</style>
+	</head>
+	<body class="text-center">
+		<main style="display: flex; align-items: center; justify-content: center;">
+			<div style="max-width:300px;">
+				<noscript>
+					<div class="alert alert-danger" role="alert">
+						JavaScriptが無効です。
+					</div>
+				</noscript>
+				<div class="alert alert-info hide" role="alert" id="alert">
+					<code id="res"></code>
+				</div>
+				<form class="form-signin" onsubmit="return false">
+					<h1 class="h3 mb-3 font-weight-normal">Please Sign in</h1>
+					<input type="email" placeholder="e-mail" id="email" class="form-control"/><br />
+					<input type="password" placeholder="password" id="pwd" class="form-control"/><br />
+					<button onclick="a(); return false" class="btn btn-lg btn-primary btn-block">Login</button><br />
+				</form>
+			</div>
+		</main>
+		<script>
+			const K = 'fuLumyyxOuXsw33K9HkyVE246frJhCTDHz18BWlUOkQtLA5kPD62BMRGmzRdTCl0JD10nDVvL+RWoghQRCU1S6bRrP8PtJqW8VbjATlBRssiDg==';
+			const V = 'eN5EyjNYgf1k0l5Tt1CYZJcxlfyxk4ZSjPZCMZ9juAsXtIsnQE+MGyus9z7vng==';
+
+			function str2ab(str) {
+				return new TextEncoder().encode(str);
+			}
+
+			function ab2str(buf) {
+				return new TextDecoder().decode(buf);
+			}
+
+			function ab2b64(arr) {
+				return btoa(String.fromCharCode.apply(null, new Uint8Array(arr)));
+			}
+
+			function b642ab(b64) {
+				const byteString = atob(b64);
+				const byteArray = new Uint8Array(byteString.length);
+				for (let i = 0; i < byteString.length; i++) {
+					byteArray[i] = byteString.charCodeAt(i);
+				}
+				return byteArray.buffer;
+			}
+
+			function getKey(password, salt) {
+				const keyMaterial = str2ab(password);
+				return window.crypto.subtle.importKey(
+					"raw",
+					keyMaterial, {
+						name: "PBKDF2"
+					},
+					false, ["deriveKey"]
+				).then(baseKey =>
+					window.crypto.subtle.deriveKey({
+						"name": "PBKDF2",
+						salt: salt,
+						"iterations": 100000,
+						"hash": "SHA-256"
+					},
+						baseKey, {
+							"name": "AES-GCM",
+							"length": 256
+						},
+						true, ["encrypt", "decrypt"]
+					)
+				);
+			}
+
+			async function decryptText(encryptedTextB64, password) {
+				if (!encryptedTextB64 || !password) {
+					throw new Error("Encrypted text and password are required.");
+				}
+
+				const encryptedBuffer = b642ab(encryptedTextB64);
+				const salt = encryptedBuffer.slice(0, 16);
+				const iv = encryptedBuffer.slice(16, 28);
+				const data = encryptedBuffer.slice(28);
+
+				const key = await getKey(password, new Uint8Array(salt));
+
+				const decryptedContent = await window.crypto.subtle.decrypt({
+					name: "AES-GCM",
+					iv: new Uint8Array(iv)
+				}, key, data);
+
+				return ab2str(decryptedContent);
+			}
+
+			const a = async () => {
+				const e = document.getElementById('email').value;
+				const p = document.getElementById('pwd').value;
+				const c = `${e}:${p}`;
+				try {
+					const r = await decryptText(V, c);
+					if (r !== 'ok') {
+						alert('ユーザ名もしくはパスワードが違います');
+						return;
+					}
+				}
+				catch {
+					alert('ユーザ名もしくはパスワードが違います');
+					return;
+				}
+
+				const m = await decryptText(K, c);
+				document.getElementById('res').innerText = `システムはメンテナンス中です。管理者からのメッセージ: ${m}`;
+				document.getElementById('alert').classList.remove('hide');
+			}
+		</script>
+	</body>
+</html>
